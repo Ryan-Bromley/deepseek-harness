@@ -17,19 +17,20 @@ it('ships install metadata with the built web application', async () => {
     start_url: '/',
     scope: '/',
     display: 'fullscreen',
-    icons: [{
-      src: '/favicon.svg',
-      sizes: 'any',
-      type: 'image/svg+xml',
-      purpose: 'any',
-    }],
+    icons: [
+      { src: '/favicon.ico', sizes: '16x16 32x32 48x48', type: 'image/x-icon', purpose: 'any' },
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    ],
   })
 })
 
-it('ships a favicon that switches to a light mark under dark color scheme', async () => {
-  const favicon = await readFile(join(DIST_ROOT, 'favicon.svg'), 'utf8')
-  // The light fill must live inside the dark-scheme media query, so the icon
-  // stays black in light mode and only turns white under a dark scheme.
-  expect(favicon).toMatch(/@media \(prefers-color-scheme: dark\)\s*{\s*path\s*{[^}]*fill:\s*#fff/i)
-  expect(favicon).toContain('fill="#000"')
+it('ships raster app icons so Windows and Edge can build a taskbar identity', async () => {
+  const png = await readFile(join(DIST_ROOT, 'icon-512.png'))
+  // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+  expect([...png.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+
+  const ico = await readFile(join(DIST_ROOT, 'favicon.ico'))
+  // ICO header: reserved = 0, type = 1 (icon)
+  expect([...ico.subarray(0, 4)]).toEqual([0x00, 0x00, 0x01, 0x00])
 })
